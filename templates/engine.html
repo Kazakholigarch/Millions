@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revenue Engine</title>
+<style>
+  :root{color-scheme:dark;--bg:#0d1117;--panel:#161b22;--panel2:#1c2230;--border:#30363d;
+  --text:#e6edf3;--muted:#8b949e;--green:#3fb950;--red:#f85149;--yellow:#d29922;
+  --orange:#db7734;--accent:#58a6ff}
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);margin:0;padding:16px;
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  .wrap{max-width:860px;margin:0 auto}
+  a{color:var(--accent)}
+  h1{font-size:1.6rem;margin:0 0 4px}
+  .subtitle{color:var(--muted);font-size:.9rem;margin:0 0 20px}
+  .nav{font-size:.85rem;margin-bottom:20px}
+  section{background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  padding:18px 20px;margin-bottom:16px}
+  section h2{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  margin:0 0 14px}
+  .stats{display:flex;flex-wrap:wrap;gap:10px}
+  .stat{flex:1 1 110px;background:var(--panel2);border:1px solid var(--border);
+  border-radius:10px;padding:12px;text-align:center}
+  .stat .n{display:block;font-size:1.5rem;font-weight:700;line-height:1.2}
+  .stat .l{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--muted);margin-top:3px}
+  .verdict{margin-top:14px;padding:10px 14px;border-radius:8px;font-size:.9rem}
+  .ok{background:#0d2a17;border:1px solid var(--green);color:#7ee2a0}
+  .warn{background:#2d2100;border:1px solid var(--yellow);color:#f0d878}
+  .bad{background:#2d0f0f;border:1px solid var(--red);color:#ff9a93}
+  ul.actions{margin:0;padding-left:20px}
+  ul.actions li{margin-bottom:7px}
+  form.scan{display:flex;gap:8px;flex-wrap:wrap}
+  input[type=text]{flex:1 1 240px;background:var(--panel2);border:1px solid var(--border);
+  color:var(--text);border-radius:8px;padding:11px 13px;font-size:1rem}
+  input[type=text]:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  button{background:var(--accent);color:#06101f;border:0;border-radius:8px;
+  padding:11px 22px;font-size:1rem;font-weight:600;cursor:pointer}
+  button:hover{filter:brightness(1.1)}
+  .hint{color:var(--muted);font-size:.8rem;margin:10px 0 0}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;
+  letter-spacing:.06em}
+  tr:last-child td{border-bottom:0}
+  .sev{font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;
+  padding:2px 7px;border-radius:20px;white-space:nowrap}
+  .sev-critical{background:#2d0f0f;color:#ff9a93;border:1px solid var(--red)}
+  .sev-high{background:#2d1a08;color:#f2ac72;border:1px solid var(--orange)}
+  .sev-medium{background:#2d2100;color:#f0d878;border:1px solid var(--yellow)}
+  .sev-low{background:var(--panel2);color:var(--muted);border:1px solid var(--border)}
+  .evidence{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;
+  color:#b9c4d0}
+  .draft{background:var(--panel2);border:1px solid var(--border);border-radius:8px;
+  padding:14px 16px;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:.82rem;line-height:1.55;overflow-x:auto}
+  .grounded{font-size:.82rem;margin-top:10px}
+  .err{background:#2d0f0f;border:1px solid var(--red);color:#ff9a93;border-radius:8px;
+  padding:12px 14px;font-size:.9rem}
+  .badge{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;
+  font-weight:700;color:#06101f}
+  .g-a{background:#3fb950}.g-b{background:#77b326}.g-c{background:var(--yellow)}
+  .g-d{background:var(--orange)}.g-f{background:var(--red)}
+  .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .muted{color:var(--muted)}
+  @media(max-width:560px){.stat{flex:1 1 calc(50% - 5px)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Revenue Engine</h1>
+  <p class="subtitle">Find businesses with provable, expensive defects — and prove it.</p>
+  <p class="nav"><a href="/">← Market analysis agent</a></p>
+
+  <section>
+    <h2>What ${{ '{:,.0f}'.format(model.target_revenue) }} in {{ model.days }} days demands</h2>
+    <div class="stats">
+      <div class="stat"><span class="n">{{ req.deals_needed }}</span><span class="l">Deals</span></div>
+      <div class="stat"><span class="n">{{ req.calls_needed }}</span><span class="l">Calls</span></div>
+      <div class="stat"><span class="n">{{ req.replies_needed }}</span><span class="l">Replies</span></div>
+      <div class="stat"><span class="n">{{ '{:,}'.format(req.sends_needed) }}</span><span class="l">Sends</span></div>
+      <div class="stat"><span class="n">{{ req.sends_per_day }}</span><span class="l">Sends / day</span></div>
+    </div>
+    <div class="verdict {{ 'bad' if 'not achievable' in req.feasibility else ('warn' if 'limit' in req.feasibility else 'ok') }}">
+      <strong>{{ req.feasibility|capitalize }}</strong>
+      — {{ req.sends_per_day }} sends a day across a {{ req.send_days }}-day send window
+      (the last {{ model.sales_cycle_days }} days are inside the sales cycle, so anything
+      sent then closes too late to count).
+    </div>
+    {% for w in req.warnings %}<div class="verdict warn">{{ w }}</div>{% endfor %}
+  </section>
+
+  <section>
+    <h2>Today</h2>
+    <div class="stats">
+      <div class="stat"><span class="n">{{ state.sends_done }}</span><span class="l">Sent</span></div>
+      <div class="stat"><span class="n">{{ brief.sends_today }}</span><span class="l">Send today</span></div>
+      <div class="stat"><span class="n">${{ '{:,.0f}'.format(state.booked_revenue) }}</span><span class="l">Booked</span></div>
+      <div class="stat"><span class="n">${{ '{:,.0f}'.format(state.projected_revenue) }}</span><span class="l">Projected</span></div>
+      <div class="stat"><span class="n">{{ state.days_remaining }}</span><span class="l">Days left</span></div>
+    </div>
+    {% if brief.actions %}
+      <ul class="actions" style="margin-top:14px">
+        {% for a in brief.actions %}<li>{{ a }}</li>{% endfor %}
+      </ul>
+    {% else %}
+      <p class="hint">Nothing queued yet. Scan a site below to start the pipeline.</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2>Scan a site</h2>
+    <form class="scan" method="get" action="/engine">
+      <input type="text" name="url" placeholder="example.com" value="{{ scanned_url or '' }}"
+             autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button type="submit">Audit it</button>
+    </form>
+    <p class="hint">Takes 5–20 seconds — it makes real requests, rate-limited and
+    obeying robots.txt. Nothing is sent to the site owner; this only reads public pages.</p>
+  </section>
+
+  {% if error %}<section><div class="err">{{ error }}</div></section>{% endif %}
+
+  {% if result %}
+  <section>
+    <h2>{{ result.domain }}</h2>
+    <div class="row">
+      <span class="badge g-{{ assessment.grade|lower }}">{{ assessment.grade }}</span>
+      <div>
+        <strong style="font-size:1.15rem">{{ assessment.health_score }}/100</strong>
+        <span class="muted">health</span>
+      </div>
+      <div class="muted">·</div>
+      <div><strong>{{ assessment.deal_fit }}</strong> <span class="muted">deal fit</span></div>
+      <div class="muted">·</div>
+      <div><strong>{{ assessment.budget.tier }}</strong> <span class="muted">budget tier</span></div>
+      <div class="muted">·</div>
+      <div><strong>{{ assessment.package.name }}</strong>
+        <span class="muted">${{ '{:,}'.format(assessment.package.price) }}</span></div>
+    </div>
+
+    <div class="stats" style="margin-top:16px">
+      {% if result.ttfb_ms %}<div class="stat"><span class="n">{{ '{:,.0f}'.format(result.ttfb_ms) }}<span style="font-size:.6em"> ms</span></span><span class="l">Response</span></div>{% endif %}
+      {% if result.html_kb %}<div class="stat"><span class="n">{{ '{:,.0f}'.format(result.html_kb) }}<span style="font-size:.6em"> KB</span></span><span class="l">HTML size</span></div>{% endif %}
+      <div class="stat"><span class="n">{{ result.findings|length }}</span><span class="l">Issues</span></div>
+      <div class="stat"><span class="n">{{ assessment.scaled_hours }}<span style="font-size:.6em">h</span></span><span class="l">Est. effort</span></div>
+    </div>
+
+    {% if assessment.scope_note %}
+      <div class="verdict warn">{{ assessment.scope_note }}</div>
+    {% endif %}
+    {% if assessment.budget.signals %}
+      <p class="hint"><strong>Spend signals:</strong> {{ assessment.budget.signals|join(' · ') }}</p>
+    {% endif %}
+  </section>
+
+  {% if result.findings %}
+  <section>
+    <h2>Findings</h2>
+    <table>
+      <thead><tr><th>Severity</th><th>Issue</th><th>Measured</th><th>Effort</th></tr></thead>
+      <tbody>
+      {% for f in result.findings %}
+        <tr>
+          <td><span class="sev sev-{{ f.severity }}">{{ f.severity }}</span></td>
+          <td>{{ f.title }}</td>
+          <td class="evidence">{{ f.evidence }}</td>
+          <td class="muted">{{ f.effort_hours }}h</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% endif %}
+
+  {% if draft %}
+  <section>
+    <h2>Opening message</h2>
+    <div class="draft">{{ draft.full }}</div>
+    {% if draft.grounded %}
+      <p class="grounded" style="color:var(--green)">
+        ✓ Every figure in this draft traces back to something measured above.</p>
+    {% else %}
+      <p class="grounded" style="color:var(--red)">
+        ✗ Contains unsourced numbers ({{ draft.unsourced|join(', ') }}) — do not send.</p>
+    {% endif %}
+    <p class="hint">Read it before you send it. Add the contact's name, and check
+    the claim still reads true to you.</p>
+  </section>
+  {% endif %}
+  {% endif %}
+
+  {% if prospects %}
+  <section>
+    <h2>Pipeline</h2>
+    <table>
+      <thead><tr><th>Site</th><th>Stage</th><th>Fit</th><th>Value</th><th>Weighted</th></tr></thead>
+      <tbody>
+      {% for p in prospects %}
+        <tr>
+          <td>{{ p.domain }}</td><td>{{ p.stage }}</td><td>{{ p.deal_fit }}</td>
+          <td>${{ '{:,.0f}'.format(p.deal_value) }}</td>
+          <td class="muted">${{ '{:,.0f}'.format(p.weighted_value) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% endif %}
+
+  <p class="hint" style="text-align:center;margin:28px 0">
+    The reasoning behind all of this is in <code>STRATEGY.md</code>.
+    Full control is on the CLI: <code>python3 money.py --help</code>
+  </p>
+
+</div>
+</body>
+</html>

@@ -1,4 +1,11 @@
+# The revenue engine (money.py) needs only requests — everything else is stdlib,
+# which keeps it runnable on a fresh VPS or in a cron job without a build step.
 requests>=2.31.0
+
+# The market-analysis agent (main.py) and the web UI (app.py) additionally need:
 yfinance>=0.2.40
 pandas>=2.0.0
 flask>=3.0.0
+
+# Tests:
+#   pytest>=8.0.0
