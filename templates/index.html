@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Millions Agent</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --green: #3fb950;
+    --red: #f85149;
+    --yellow: #d29922;
+    --accent: #58a6ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 0;
+    padding: 16px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; }
+  .disclaimer {
+    background: #2d2100;
+    border: 1px solid var(--yellow);
+    color: #f0d878;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+  fieldset {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  legend { padding: 0 8px; font-weight: 600; }
+  label.checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 14px;
+    margin: 4px 6px 4px 0;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  label.checkbox input { width: 18px; height: 18px; }
+  input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 1rem;
+    margin-top: 8px;
+  }
+  .hint { color: var(--muted); font-size: 0.8rem; margin-top: 6px; }
+  button {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #04121f;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  button:active { opacity: 0.85; }
+  .results { margin-top: 24px; }
+  .card {
+    border: 1px solid var(--border);
+    border-left-width: 5px;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    background: var(--panel);
+  }
+  .card.bullish { border-left-color: var(--green); }
+  .card.bearish { border-left-color: var(--red); }
+  .card.neutral { border-left-color: var(--muted); }
+  .card h3 { margin: 0 0 4px 0; font-size: 1.1rem; }
+  .verdict-bullish { color: var(--green); }
+  .verdict-bearish { color: var(--red); }
+  .verdict-neutral { color: var(--muted); }
+  .price { color: var(--muted); margin-bottom: 8px; }
+  ul.reasons { margin: 0; padding-left: 18px; color: #c9d1d9; font-size: 0.9rem; }
+  .errors {
+    background: #2d0f0f;
+    border: 1px solid var(--red);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 16px;
+    font-size: 0.85rem;
+  }
+  .empty { color: var(--muted); font-size: 0.9rem; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Millions Agent</h1>
+  <div class="subtitle">Tap what you want analyzed. Live data, no typing required.</div>
+  <div class="disclaimer">
+    ⚠️ Not financial advice — technical-analysis signals only, based on past price behavior.
+  </div>
+
+  <form method="POST">
+    <fieldset>
+      <legend>Crypto</legend>
+      {% for value, label in crypto_options %}
+        <label class="checkbox">
+          <input type="checkbox" name="crypto" value="{{ value }}">
+          {{ label }}
+        </label>
+      {% endfor %}
+      <input type="text" name="custom_crypto" placeholder="Other coin ids, comma-separated (e.g. litecoin)">
+      <div class="hint">Use CoinGecko's coin id, e.g. "bitcoin" not "BTC".</div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Stocks</legend>
+      {% for value, label in stock_options %}
+        <label class="checkbox">
+          <input type="checkbox" name="stocks" value="{{ value }}">
+          {{ label }}
+        </label>
+      {% endfor %}
+      <input type="text" name="custom_stocks" placeholder="Other tickers, comma-separated (e.g. AMZN)">
+    </fieldset>
+
+    <button type="submit">Analyze</button>
+  </form>
+
+  <div class="results">
+    {% if errors %}
+      <div class="errors">
+        <strong>Some assets failed:</strong>
+        <ul>
+          {% for err in errors %}<li>{{ err }}</li>{% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    {% for sig in signals %}
+      <div class="card {{ sig.verdict | lower }}">
+        <h3>{{ sig.symbol | upper }} <span class="verdict-{{ sig.verdict | lower }}">— {{ sig.verdict }}</span></h3>
+        <div class="price">price: ${{ "%.2f"|format(sig.price) }}</div>
+        <ul class="reasons">
+          {% for reason in sig.reasons %}<li>{{ reason }}</li>{% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+
+    {% if submitted and not signals and not errors %}
+      <div class="empty">Nothing selected — tick a box above and tap Analyze.</div>
+    {% endif %}
+  </div>
+</div>
+</body>
+</html>

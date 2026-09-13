@@ -23,7 +23,19 @@ keys to run.
 pip install -r requirements.txt
 ```
 
-## Usage
+## Usage — web app (easiest, point-and-click)
+
+```bash
+python3 app.py
+```
+
+Then open the app in your browser:
+- **GitHub Codespaces**: a popup will offer "Open in Browser" for port 5000, or check the **Ports** tab at the bottom panel and tap the globe/open icon next to port 5000.
+- **Local machine**: open `http://localhost:5000`.
+
+Tick the checkboxes for the coins/stocks you want, tap **Analyze**, done — no typed commands, no commas to get right.
+
+## Usage — command line
 
 ```bash
 # Crypto only (CoinGecko coin ids, not tickers — e.g. "bitcoin" not "BTC")
@@ -56,11 +68,13 @@ Example output:
 ## Project layout
 
 ```
-main.py               CLI entrypoint
-agent/data_sources.py fetching crypto (CoinGecko) and stock (yfinance) price history
-agent/indicators.py   SMA, RSI, momentum calculations
-agent/signals.py      rule-based BULLISH/BEARISH/NEUTRAL verdict logic
-agent/report.py       terminal report formatting
+app.py                 Flask web UI (checkboxes, no typing needed)
+templates/index.html   web UI page
+main.py                CLI entrypoint
+agent/data_sources.py  fetching crypto (CoinGecko) and stock (yfinance) price history
+agent/indicators.py    SMA, RSI, momentum calculations
+agent/signals.py       rule-based BULLISH/BEARISH/NEUTRAL verdict logic
+agent/report.py        terminal report formatting
 ```
 
 ## Roadmap / where this can go next
