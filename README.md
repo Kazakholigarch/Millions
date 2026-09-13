@@ -1,102 +1,70 @@
-# Millions Agent
+# Millions
 
-An AI/analysis agent for investing and crypto research — v1 is an
-**analyze-and-alert** tool: it pulls live market data, computes technical
-signals, and prints a report. It does **not** place trades and needs no API
-keys to run.
+Two projects live here.
 
-> ⚠️ **Not financial advice.** The signals here are simple, transparent
-> technical-analysis rules (moving averages, RSI, momentum). They describe
-> past price behavior, not future performance. Treat this as one research
-> input, never as a command to buy or sell.
+## 1. CiteLocal — AI visibility audits for local businesses
 
-## What it does
-
-- Fetches crypto prices from [CoinGecko](https://www.coingecko.com/en/api) (free, no key).
-- Fetches stock prices from Yahoo Finance via `yfinance` (free, no key).
-- Computes SMA20, SMA50, RSI14, and 10-period momentum.
-- Combines them into a BULLISH / BEARISH / NEUTRAL verdict with the reasons behind it.
-
-## Setup
+**The main project.** Audits whether AI assistants (ChatGPT, Claude, Perplexity,
+Google AI Overviews) can see, understand and recommend a local business, then
+generates the exact fixes as paste-ready code.
 
 ```bash
 pip install -r requirements.txt
+python3 -m citelocal.web        # http://localhost:5000
 ```
 
-## Usage — web app (easiest, point-and-click)
+Runs with no API keys. Full documentation: **[citelocal/README.md](citelocal/README.md)**
+
+Why it exists: AI use for local search went from 6% to 45% in a year, assistants
+name only 3–5 businesses per answer, and just 1.2% of local business locations
+ever get recommended. Agencies already sell this service at $500–$1,500 per
+client per month — CiteLocal is the tool that makes the work repeatable and the
+report sellable.
+
+What most audits miss, and this one leads with: a site's `robots.txt` may be
+silently blocking the crawlers that build AI retrieval indexes, which makes the
+business uncitable no matter how good its content is.
 
 ```bash
-python3 app.py
+# Audit a business, produce a client-ready report
+python3 -m citelocal.cli --name "Precision Plumbing" --site example.com \
+  --city Austin --region TX --category plumber --html report.html
+
+# Run the test suite (84 assertions, no network required)
+python3 tests/test_audit.py
 ```
 
-Then open the app in your browser:
-- **GitHub Codespaces**: a popup will offer "Open in Browser" for port 5000, or check the **Ports** tab at the bottom panel and tap the globe/open icon next to port 5000.
-- **Local machine**: open `http://localhost:5000`.
+## 2. Millions Agent — market analysis
 
-Tick the checkboxes for the coins/stocks you want, tap **Analyze**, done — no typed commands, no commas to get right.
+An earlier analyze-and-alert tool for investing and crypto research. Pulls live
+market data, computes technical signals, prints a report. Places no trades and
+needs no API keys.
 
-## Usage — command line
+> ⚠️ **Not financial advice.** Simple, transparent technical-analysis rules
+> (moving averages, RSI, momentum) describing past price behaviour, not future
+> performance.
 
 ```bash
-# Crypto only (CoinGecko coin ids, not tickers — e.g. "bitcoin" not "BTC")
-python3 main.py --crypto bitcoin,ethereum,solana
-
-# Stocks only
-python3 main.py --stocks AAPL,MSFT,TSLA
-
-# Both, with custom lookback windows
-python3 main.py --crypto bitcoin --stocks NVDA --crypto-days 180 --stock-period 1y
+python3 app.py                                      # web UI on port 5000
+python3 main.py --crypto bitcoin --stocks AAPL      # CLI
 ```
 
-Example output:
-
 ```
-============================================================
-  MILLIONS AGENT — market analysis report
-  (educational signals, not financial advice)
-============================================================
-
-[+] BITCOIN (crypto)  →  BULLISH
-    price: $63,210.44
-    - price ($63,210.44) is above SMA20 ($61,004.10)
-    - SMA20 is above SMA50 (short-term uptrend)
-    - RSI14 is 58.3 (neutral zone)
-    - up 4.2% over the last 10 periods
-============================================================
+agent/data_sources.py   crypto (CoinGecko) and stock (yfinance) price history
+agent/indicators.py     SMA, RSI, momentum
+agent/signals.py        BULLISH / BEARISH / NEUTRAL verdict rules
+agent/report.py         terminal report formatting
+app.py                  Flask web UI (templates/index.html)
+main.py                 CLI entrypoint
 ```
 
-## Project layout
+Both apps default to port 5000 — run one at a time, or set `PORT` for CiteLocal.
+
+## Layout
 
 ```
-app.py                 Flask web UI (checkboxes, no typing needed)
-templates/index.html   web UI page
-main.py                CLI entrypoint
-agent/data_sources.py  fetching crypto (CoinGecko) and stock (yfinance) price history
-agent/indicators.py    SMA, RSI, momentum calculations
-agent/signals.py       rule-based BULLISH/BEARISH/NEUTRAL verdict logic
-agent/report.py        terminal report formatting
+citelocal/          AI visibility audit engine, CLI, and web app
+tests/              end-to-end tests with local fixture sites
+agent/              market analysis engine
+main.py app.py      market analysis CLI and web UI
 ```
-
-## Roadmap / where this can go next
-
-This is intentionally a v1 foundation. Natural next steps, roughly in order
-of risk:
-
-1. **Scheduler + alerts** — run on a timer, push alerts to Slack/email/Discord
-   instead of just printing.
-2. **Backtesting** — replay a strategy against historical data to see how it
-   would have performed before trusting it with anything.
-3. **Paper trading** — connect to a broker/exchange's *sandbox* API
-   (simulated money, real live prices) to measure real strategy performance
-   risk-free.
-4. **LLM-assisted research** — have an LLM read news/filings/on-chain data
-   and summarize context alongside the technical signals.
-5. **Live automated trading** — only after (2) and (3) show a strategy is
-   actually sound. This is real-money risk; build and validate carefully.
-
-## Disclaimer
-
-This project is for educational and research purposes. It is not
-investment advice, and past performance (real or backtested) does not
-guarantee future results. Any trading, automated or manual, carries risk
-of loss.
