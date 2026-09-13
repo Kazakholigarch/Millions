@@ -36,18 +36,23 @@ STOCK_OPTIONS = [
 ]
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def index():
+    # Using GET (a query string) instead of POST here is deliberate: some
+    # browsers/proxies (notably Safari through GitHub Codespaces' forwarded
+    # URLs) mishandle POSTed form responses and offer to "download" the page
+    # instead of rendering it. GET avoids that entirely and, as a bonus,
+    # makes a given analysis linkable/bookmarkable.
     signals = []
     errors = []
-    submitted = request.method == "POST"
+    submitted = bool(request.args)
 
     if submitted:
-        crypto_ids = request.form.getlist("crypto") + _split_custom(
-            request.form.get("custom_crypto", "")
+        crypto_ids = request.args.getlist("crypto") + _split_custom(
+            request.args.get("custom_crypto", "")
         )
-        tickers = request.form.getlist("stocks") + _split_custom(
-            request.form.get("custom_stocks", "")
+        tickers = request.args.getlist("stocks") + _split_custom(
+            request.args.get("custom_stocks", "")
         )
 
         for coin_id in crypto_ids:
