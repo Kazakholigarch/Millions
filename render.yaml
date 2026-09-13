@@ -1,0 +1,18 @@
+# Render.com Blueprint — lets Render auto-configure the service instead of you
+# typing build/start commands by hand. On render.com: New -> Blueprint -> pick
+# this repo -> it reads this file -> Apply.
+services:
+  - type: web
+    name: citelocal
+    runtime: python
+    plan: free
+    branch: claude/research-approach-question-6jpgwb
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn citelocal.web:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # Optional: add ANTHROPIC_API_KEY / OPENAI_API_KEY / PERPLEXITY_API_KEY
+      # here later (as "secret" envVars, no value committed) to turn on the
+      # live AI-visibility probe. Not required — the audit works without it.

@@ -1,6 +1,7 @@
 # CiteLocal (citelocal/) — AI visibility audits
 requests>=2.31.0
 flask>=3.0.0
+gunicorn>=22.0.0
 
 # Millions Agent (agent/, main.py, app.py) — market analysis
 yfinance>=0.2.40
