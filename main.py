@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Millions Agent — CLI entrypoint.
 
-Fetches live crypto/stock data, computes technical signals, and prints a
-report. This tool does not place trades and does not require API keys.
+Fetches live crypto/stock data, blends technical + fundamental signals
+(weighted by their own historical accuracy), and prints a report. This
+tool does not place trades and does not require API keys — an optional
+ANTHROPIC_API_KEY upgrades the writeup style, nothing else.
 
 Examples:
     python3 main.py --crypto bitcoin,ethereum --stocks AAPL,MSFT
@@ -14,9 +16,8 @@ from __future__ import annotations
 import argparse
 import sys
 
-from agent.data_sources import fetch_crypto_history, fetch_stock_history
+from agent.analysis import analyze_crypto, analyze_stock
 from agent.report import render
-from agent.signals import evaluate
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -56,32 +57,30 @@ def main(argv: list[str]) -> int:
         print("Example: python3 main.py --crypto bitcoin --stocks AAPL", file=sys.stderr)
         return 1
 
-    signals = []
+    analyses = []
     errors = []
 
     for coin_id in crypto_ids:
         try:
-            history = fetch_crypto_history(coin_id, days=args.crypto_days)
-            signals.append(evaluate(history))
+            analyses.append(analyze_crypto(coin_id, days=args.crypto_days))
         except Exception as exc:  # noqa: BLE001 - surface any fetch/parse failure per-asset
             errors.append(f"crypto '{coin_id}': {exc}")
 
     for ticker in tickers:
         try:
-            history = fetch_stock_history(ticker, period=args.stock_period)
-            signals.append(evaluate(history))
+            analyses.append(analyze_stock(ticker, period=args.stock_period))
         except Exception as exc:  # noqa: BLE001
             errors.append(f"stock '{ticker}': {exc}")
 
-    if signals:
-        print(render(signals))
+    if analyses:
+        print(render(analyses))
 
     if errors:
         print("\nErrors:", file=sys.stderr)
         for err in errors:
             print(f"  - {err}", file=sys.stderr)
 
-    return 0 if signals else 1
+    return 0 if analyses else 1
 
 
 if __name__ == "__main__":

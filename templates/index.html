@@ -108,6 +108,44 @@
     font-size: 0.85rem;
   }
   .empty { color: var(--muted); font-size: 0.9rem; margin-top: 16px; }
+  .section-label {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin: 12px 0 4px 0;
+    font-weight: 700;
+  }
+  .narrative {
+    background: #0a1520;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #c9d1d9;
+    font-style: italic;
+  }
+  .news-list { list-style: none; padding: 0; margin: 0; font-size: 0.85rem; }
+  .news-list li { padding: 4px 0; border-top: 1px solid var(--border); }
+  .news-list li:first-child { border-top: none; }
+  .news-publisher { color: var(--muted); font-size: 0.8rem; }
+  .track-record {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .history-list { font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+  .global-track {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-bottom: 16px;
+  }
 </style>
 </head>
 <body>
@@ -115,8 +153,16 @@
   <h1>Millions Agent</h1>
   <div class="subtitle">Tap what you want analyzed. Live data, no typing required.</div>
   <div class="disclaimer">
-    ⚠️ Not financial advice — technical-analysis signals only, based on past price behavior.
+    ⚠️ Not financial advice — a technical + fundamentals checklist based on public data, not a prediction.
   </div>
+
+  {% if track_record and track_record.total_scored %}
+    <div class="global-track">
+      Agent's track record so far: {{ track_record.correct }}/{{ track_record.total_scored }} past
+      signals correct ({{ "%.0f"|format(track_record.accuracy_pct) }}%) — it adjusts indicator
+      weights as more signals mature.
+    </div>
+  {% endif %}
 
   <form method="GET">
     <fieldset>
@@ -155,17 +201,58 @@
       </div>
     {% endif %}
 
-    {% for sig in signals %}
+    {% for a in analyses %}
+      {% set sig = a.signal %}
       <div class="card {{ sig.verdict | lower }}">
         <h3>{{ sig.symbol | upper }} <span class="verdict-{{ sig.verdict | lower }}">— {{ sig.verdict }}</span></h3>
         <div class="price">price: ${{ "%.2f"|format(sig.price) }}</div>
+
+        <div class="section-label">Technicals</div>
         <ul class="reasons">
           {% for reason in sig.reasons %}<li>{{ reason }}</li>{% endfor %}
         </ul>
+
+        {% if sig.fundamental_reasons %}
+          <div class="section-label">Fundamentals</div>
+          <ul class="reasons">
+            {% for reason in sig.fundamental_reasons %}<li>{{ reason }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+
+        {% if a.news %}
+          <div class="section-label">Recent headlines</div>
+          <ul class="news-list">
+            {% for item in a.news[:3] %}
+              <li>
+                {{ item.title }}
+                {% if item.publisher %}<div class="news-publisher">{{ item.publisher }}</div>{% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        <div class="narrative">{{ a.narrative }}</div>
+
+        {% if a.track_record and a.track_record.total_scored %}
+          <div class="track-record">
+            📊 Track record for {{ sig.symbol | upper }}:
+            {{ a.track_record.correct }}/{{ a.track_record.total_scored }} correct
+            ({{ "%.0f"|format(a.track_record.accuracy_pct) }}%)
+            {% if a.scored_history %}
+              <div class="history-list">
+                Just scored {{ a.scored_history|length }} past signal(s):
+                {% for s in a.scored_history %}
+                  {{ s.timestamp[:10] }} was {{ s.old_verdict }} → {{ s.outcome }}
+                  ({{ "%+.1f"|format(s.forward_return_pct) }}% since){% if not loop.last %}; {% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
       </div>
     {% endfor %}
 
-    {% if submitted and not signals and not errors %}
+    {% if submitted and not analyses and not errors %}
       <div class="empty">Nothing selected — tick a box above and tap Analyze.</div>
     {% endif %}
   </div>
