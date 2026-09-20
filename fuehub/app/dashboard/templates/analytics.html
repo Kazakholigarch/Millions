@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block content %}
+<h1>Analytics</h1>
+
+<section class="panel">
+  <h2>Response time by language &amp; channel</h2>
+  {% if response_times %}
+  <table>
+    <thead><tr><th>Language</th><th>Channel</th><th>Replies</th><th>Avg. first-response time</th></tr></thead>
+    <tbody>
+      {% for row in response_times %}
+      <tr>
+        <td>{{ row.language }}</td>
+        <td>{{ row.channel }}</td>
+        <td>{{ row.count }}</td>
+        <td>{{ row.avg_minutes }} min</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No replies sent yet.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Funnel</h2>
+  <div class="funnel">
+    <div class="funnel-stage"><div class="funnel-num">{{ funnel.enquired }}</div><div class="funnel-label">Enquired</div></div>
+    <div class="funnel-arrow">&rarr;</div>
+    <div class="funnel-stage"><div class="funnel-num">{{ funnel.responded }}</div><div class="funnel-label">Responded</div></div>
+    <div class="funnel-arrow">&rarr;</div>
+    <div class="funnel-stage"><div class="funnel-num">{{ funnel.consultation_booked }}</div><div class="funnel-label">Consultation booked</div></div>
+    <div class="funnel-arrow">&rarr;</div>
+    <div class="funnel-stage"><div class="funnel-num">{{ funnel.deposit_paid }}</div><div class="funnel-label">Deposit paid</div></div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Recovered by follow-up sequence</h2>
+  <p class="muted">Leads that went quiet, got a 2-day/6-day nudge, replied on their own, and then converted.</p>
+  <div class="stat-row">
+    <div class="stat"><div class="stat-num">{{ recovered.nudged_and_replied }}</div><div class="stat-label">Nudged &amp; replied</div></div>
+    <div class="stat"><div class="stat-num">{{ recovered.recovered_bookings }}</div><div class="stat-label">Recovered bookings</div></div>
+    <div class="stat"><div class="stat-num">{{ recovered.recovered_deposits }}</div><div class="stat-label">Recovered deposits</div></div>
+  </div>
+</section>
+{% endblock %}

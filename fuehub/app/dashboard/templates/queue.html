@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Queue{% endblock %}
+{% block content %}
+<h1>Approve &amp; send queue</h1>
+<p class="muted">Sorted by urgency &mdash; hottest leads first. Nothing goes out until you approve or edit it.</p>
+
+<form method="get" class="filters">
+  <label>Channel
+    <select name="channel" onchange="this.form.submit()">
+      <option value="">All</option>
+      {% for c in channels %}
+        <option value="{{ c }}" {{ 'selected' if channel == c }}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Language
+    <select name="language" onchange="this.form.submit()">
+      <option value="">All</option>
+      {% for l in languages %}
+        <option value="{{ l }}" {{ 'selected' if language == l }}>{{ l }}</option>
+      {% endfor %}
+    </select>
+  </label>
+</form>
+
+{% if not items %}
+  <p class="empty">Queue is empty. New enquiries will land here as soon as they arrive.</p>
+{% endif %}
+
+<div class="queue-list">
+  {% for item in items %}
+  <div class="queue-card band-{{ item.lead.urgency_band }}">
+    <div class="queue-card-head">
+      <a href="{{ url_for('dashboard.lead_detail', lead_id=item.lead.id) }}" class="lead-name">{{ item.lead.display_name }}</a>
+      <span class="badge band-{{ item.lead.urgency_band }}">{{ item.lead.urgency_band }} &middot; {{ item.lead.urgency_score }}</span>
+      <span class="badge channel">{{ item.channel }}</span>
+      <span class="badge lang">{{ item.language }}</span>
+      {% if item.lead.has_photos %}<span class="badge photo">📷 photo</span>{% endif %}
+    </div>
+
+    <div class="queue-card-body">
+      <p class="original-msg">&ldquo;{{ item.lead.first_message }}&rdquo;</p>
+
+      {% if item.status == MessageStatus.NEEDS_CLINICIAN %}
+        <p class="clinician-flag">⚕ Clinical question &mdash; no AI draft. Please write the reply.</p>
+        <form method="post" action="{{ url_for('dashboard.send_from_queue', message_id=item.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <textarea name="body" rows="4" placeholder="Write a reply..." required></textarea>
+          <button type="submit">Send</button>
+        </form>
+      {% else %}
+        <form method="post" action="{{ url_for('dashboard.send_from_queue', message_id=item.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <textarea name="body" rows="4">{{ item.body }}</textarea>
+          <div class="actions">
+            <button type="submit" class="primary">Approve &amp; send</button>
+          </div>
+        </form>
+        <form method="post" action="{{ url_for('dashboard.discard_from_queue', message_id=item.id) }}" class="discard-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit" class="danger">Discard draft</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

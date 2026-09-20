@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Availability{% endblock %}
+{% block content %}
+<h1>Consultation availability</h1>
+
+{% if current_user.is_admin %}
+<section class="panel">
+  <h2>Add a slot</h2>
+  <form method="post" class="inline-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Start <input type="datetime-local" name="start_time" required></label>
+    <label>End <input type="datetime-local" name="end_time" required></label>
+    <label>Label <input type="text" name="label" placeholder="Dr. Yilmaz - video consult"></label>
+    <button type="submit" class="primary">Add</button>
+  </form>
+</section>
+{% endif %}
+
+<section class="panel">
+  <h2>Upcoming slots</h2>
+  {% if slots %}
+  <table>
+    <thead><tr><th>Start</th><th>End</th><th>Label</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for s in slots %}
+      <tr>
+        <td>{{ s.start_time | local_time }}</td>
+        <td>{{ s.end_time | local_time }}</td>
+        <td>{{ s.staff_label or '' }}</td>
+        <td>{% if s.is_booked %}<span class="badge status">booked</span>{% else %}<span class="badge band-warm">open</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No slots yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

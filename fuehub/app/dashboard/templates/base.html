@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}FueHub{% endblock %} · FueHub Front Desk</title>
+  <link rel="stylesheet" href="{{ url_for('dashboard.static', filename='style.css') }}">
+</head>
+<body>
+  {% if current_user.is_authenticated %}
+  <header class="topbar">
+    <div class="brand">FueHub <span class="brand-sub">{{ current_user.clinic.name }}</span></div>
+    <nav>
+      <a href="{{ url_for('dashboard.queue') }}" class="{{ 'active' if request.endpoint == 'dashboard.queue' }}">Queue</a>
+      <a href="{{ url_for('dashboard.analytics') }}" class="{{ 'active' if request.endpoint == 'dashboard.analytics' }}">Analytics</a>
+      <a href="{{ url_for('dashboard.availability') }}" class="{{ 'active' if request.endpoint == 'dashboard.availability' }}">Availability</a>
+    </nav>
+    <div class="who">{{ current_user.name }} ({{ current_user.role }}) · <a href="{{ url_for('dashboard.logout') }}">Log out</a></div>
+  </header>
+  {% endif %}
+
+  <main class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashes">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

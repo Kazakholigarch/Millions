@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ lead.display_name }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('dashboard.queue') }}" class="back-link">&larr; Back to queue</a>
+
+<div class="lead-header">
+  <h1>{{ lead.display_name }}</h1>
+  <span class="badge band-{{ lead.urgency_band }}">{{ lead.urgency_band }} &middot; {{ lead.urgency_score }}</span>
+  <span class="badge channel">{{ lead.channel }}</span>
+  <span class="badge lang">{{ lead.language }}</span>
+  <span class="badge status">{{ lead.status }}</span>
+  {% if lead.requires_clinical_review %}<span class="badge clinical">⚕ clinical review flagged</span>{% endif %}
+</div>
+
+<div class="lead-grid">
+  <div class="lead-main">
+    <h2>Conversation</h2>
+    <div class="thread">
+      {% for m in messages %}
+      <div class="msg msg-{{ m.direction }} author-{{ m.author_type }}">
+        <div class="msg-meta">{{ m.author_type }} &middot; {{ m.created_at | local_time }}{% if m.status == 'pending_review' %} &middot; <em>pending review</em>{% endif %}</div>
+        <div class="msg-body">{{ m.body or '(empty)' }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <h3>Send a reply</h3>
+    <form method="post" action="{{ url_for('dashboard.manual_reply', lead_id=lead.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <textarea name="body" rows="4" placeholder="Write a message..." required></textarea>
+      <button type="submit" class="primary">Send</button>
+    </form>
+  </div>
+
+  <div class="lead-side">
+    <h3>Why this score</h3>
+    <ul class="reasons">
+      {% for reason in lead.score_reasons %}<li>{{ reason }}</li>{% endfor %}
+      {% if not lead.score_reasons %}<li class="muted">No urgency signals yet.</li>{% endif %}
+    </ul>
+
+    {% if attachments %}
+    <h3>Photos</h3>
+    <div class="photos">
+      {% for a in attachments %}
+        {% if a.file_path.startswith('external-reference::') %}
+          <a href="{{ url_for('dashboard.attachment_file', lead_id=lead.id, attachment_id=a.id) }}" target="_blank">external photo link</a>
+        {% else %}
+          <a href="{{ url_for('dashboard.attachment_file', lead_id=lead.id, attachment_id=a.id) }}" target="_blank">
+            <img src="{{ url_for('dashboard.attachment_file', lead_id=lead.id, attachment_id=a.id) }}" alt="patient photo">
+          </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+    <p class="muted small">For a real clinician to assess &mdash; never auto-evaluated by the AI.</p>
+    {% endif %}
+
+    <h3>Book free consultation</h3>
+    {% if lead.consultation_slot %}
+      <p>Booked: {{ lead.consultation_slot.start_time | local_time }}</p>
+    {% elif slots %}
+      <form method="post" action="{{ url_for('dashboard.book_consultation', lead_id=lead.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <select name="slot_id" required>
+          {% for s in slots %}
+            <option value="{{ s.id }}">{{ s.start_time | local_time }}{% if s.staff_label %} &mdash; {{ s.staff_label }}{% endif %}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="primary">Book</button>
+      </form>
+    {% else %}
+      <p class="muted">No open slots. Add some on the Availability page.</p>
+    {% endif %}
+
+    {% if lead.consultation_booked_at and not lead.deposit_paid_at %}
+    <h3>Deposit</h3>
+    <form method="post" action="{{ url_for('dashboard.mark_deposit', lead_id=lead.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit" class="primary">Mark deposit paid</button>
+    </form>
+    {% elif lead.deposit_paid_at %}
+      <p class="badge status">Deposit paid {{ lead.deposit_paid_at | local_time('%Y-%m-%d') }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
