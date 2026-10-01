@@ -6,4 +6,5 @@ langdetect>=1.0.9
 anthropic>=0.34.0
 python-dotenv>=1.0.1
 werkzeug>=3.0.0
+gunicorn>=22.0.0
 pytest>=8.0.0

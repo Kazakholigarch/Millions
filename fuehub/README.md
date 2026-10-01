@@ -30,6 +30,50 @@ Log in with the credentials `seed.py` prints (`admin@fuehub.example` /
 
 Run the tests: `pytest` (from the `fuehub/` directory).
 
+## Deploy a live demo (for showing the clinic owner)
+
+A public URL beats a laptop screen-share. This deploys with zero
+credentials -- it runs on the offline AI drafter and logs rather than
+sends on the channel adapters, with a richer seeded dataset (a hot lead,
+a clinical escalation, a photo review, a booked consultation, a paid
+deposit, a lead recovered by the follow-up sequence) so the dashboard
+already has a story to tell the moment it's up.
+
+**Render (recommended -- free, no credit card for the free tier):**
+
+1. Push this branch to GitHub (already done if you're reading this from
+   the repo) and sign up at [render.com](https://render.com) with your
+   GitHub account.
+2. **New +** -> **Blueprint** -> pick this repository.
+3. Render reads `render.yaml` at the repo root automatically and proposes
+   a service called `fuehub-demo`. If it asks which branch, pick
+   `claude/hair-clinic-front-desk-mivn46` (or `main`, once this is
+   merged).
+4. Click **Apply**. First deploy takes ~2-3 minutes (installs
+   dependencies, seeds demo data, starts the server).
+5. Render gives you a URL like `https://fuehub-demo.onrender.com`. Open
+   it, log in with `admin@fuehub.example` / `changeme123`, and you have a
+   clickable product to walk the owner through.
+
+Free-tier instances sleep after 15 minutes of inactivity and take a few
+seconds to wake on the next request -- fine for a scheduled demo call,
+mention it if you're sending the link ahead of time. The free tier also
+has no persistent disk, so demo data resets to the seeded state on every
+restart/redeploy (by design -- `startCommand` reseeds automatically, so
+it's never empty).
+
+**Anything else (Railway, Fly.io, a VPS, ...):** the app is a standard
+Flask service with a WSGI entrypoint at `wsgi:app` and a `Procfile`
+(`web: python seed.py && gunicorn wsgi:app --workers 1 --bind
+0.0.0.0:$PORT`) -- most Python-aware platforms will run it with little
+or no extra config. Keep `--workers 1`: the follow-up scheduler runs
+in-process, and a second worker would double-send nudges.
+
+Once the owner says yes and you're moving to a real pilot: set
+`FUEHUB_AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` for real AI drafting,
+and the clinic's actual Twilio/Meta/SMTP credentials (see
+`.env.example`) to connect their real channels instead of the demo data.
+
 ## What's real vs. simulated by default
 
 Nothing here requires an API key to run -- every external integration has

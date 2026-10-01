@@ -1,0 +1,23 @@
+# Render Blueprint for the FueHub demo (fuehub/). Deploy: on render.com,
+# "New +" -> "Blueprint" -> pick this repo and the
+# claude/hair-clinic-front-desk-mivn46 branch -> Apply. See
+# fuehub/README.md "Deploy a live demo" for the full walkthrough.
+services:
+  - type: web
+    name: fuehub-demo
+    runtime: python
+    rootDir: fuehub
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    # Reseeds demo data on every boot (idempotent -- no-ops once leads
+    # exist) so a fresh deploy or a free-tier wake-from-sleep always has a
+    # populated dashboard to show. Single worker so only one copy of the
+    # in-process follow-up scheduler ever runs.
+    startCommand: "python seed.py && gunicorn wsgi:app --workers 1 --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: FUEHUB_SECRET_KEY
+        generateValue: true
+      - key: FUEHUB_AI_PROVIDER
+        value: fake
+      - key: PYTHON_VERSION
+        value: 3.11.9
