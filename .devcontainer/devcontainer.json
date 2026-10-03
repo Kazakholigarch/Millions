@@ -1,0 +1,16 @@
+{
+  "name": "Millions Agent",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bullseye",
+
+  "postCreateCommand": "pip install -r requirements.txt",
+
+  "postStartCommand": "nohup python3 app.py > /tmp/millions-agent.log 2>&1 &",
+
+  "forwardPorts": [5000],
+  "portsAttributes": {
+    "5000": {
+      "label": "Millions Agent",
+      "onAutoForward": "openBrowser"
+    }
+  }
+}

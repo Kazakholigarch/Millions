@@ -38,7 +38,16 @@ export ANTHROPIC_API_KEY=sk-ant-...
 
 Everything works without this — it only changes how the explanation is worded, never the underlying BULLISH/BEARISH/NEUTRAL call or the weights behind it.
 
-## Usage — web app (easiest, point-and-click)
+## Usage — GitHub Codespaces (zero commands)
+
+This repo includes `.devcontainer/devcontainer.json`, which makes a codespace start the web app by itself — no typed commands at all.
+
+- **A brand new codespace** (Code → Codespaces → Create codespace on this branch) installs everything and launches the app automatically; your browser opens straight to it once it's ready.
+- **An existing codespace created before this file was added** needs one manual step to pick it up: open the Command Palette (the `...` menu, or search for it) and run **"Codespaces: Rebuild Container"**. After that one rebuild, it auto-starts every time you open that codespace from then on.
+
+If the browser tab doesn't open on its own, check the **Ports** tab for port 5000 and tap its link.
+
+## Usage — web app (manual)
 
 ```bash
 python3 app.py
